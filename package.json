@@ -1,0 +1,14 @@
+{
+  "name": "todo-api",
+  "version": "1.0.0",
+  "description": "A small in-memory CRUD API for a to-do list (FlyRank Internship, Backend Track, W2 A1)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node test_logic.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "swagger-ui-express": "^5.0.1"
+  }
+}
