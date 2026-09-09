@@ -20,4 +20,10 @@ function getById(id) {
   return tasks.find((t) => t.id === id);
 }
 
-module.exports = { getAll, getById, seed };
+function create(title) {
+  const task = { id: nextId++, title, done: false };
+  tasks.push(task);
+  return task;
+}
+
+module.exports = { getAll, getById, create, seed };

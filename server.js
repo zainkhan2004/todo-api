@@ -22,4 +22,13 @@ app.get('/tasks/:id', (req, res) => {
   res.json(task);
 });
 
+app.post('/tasks', (req, res) => {
+  const { title } = req.body;
+  if (typeof title !== 'string' || title.trim() === '') {
+    return res.status(400).json({ error: 'title is required and must be a non-empty string' });
+  }
+  const created = tasks.create(title);
+  res.status(201).json(created);
+});
+
 app.listen(3000, () => console.log('Task API listening on http://localhost:3000'));
