@@ -1,5 +1,8 @@
 const express = require('express');
+const swaggerUi = require('swagger-ui-express');
+const openapiSpec = require('./openapi.json');
 const tasks = require('./tasks');
+
 const app = express();
 app.use(express.json());
 
@@ -11,8 +14,18 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(openapiSpec));
+
 app.get('/tasks', (req, res) => {
-  res.json(tasks.getAll());
+  let result = tasks.getAll();
+  if (req.query.done !== undefined) {
+    result = result.filter((t) => String(t.done) === req.query.done);
+  }
+  if (req.query.search) {
+    const term = req.query.search.toLowerCase();
+    result = result.filter((t) => t.title.toLowerCase().includes(term));
+  }
+  res.json(result);
 });
 
 app.get('/tasks/:id', (req, res) => {
@@ -58,4 +71,15 @@ app.delete('/tasks/:id', (req, res) => {
   res.status(204).end();
 });
 
-app.listen(3000, () => console.log('Task API listening on http://localhost:3000'));
+app.post('/reset', (req, res) => {
+  res.json(tasks.reset());
+});
+
+app.get('/stats', (req, res) => {
+  const all = tasks.getAll();
+  const done = all.filter((t) => t.done).length;
+  res.json({ total: all.length, done, open: all.length - done });
+});
+
+const PORT = 3000;
+app.listen(PORT, () => console.log(`Task API listening on http://localhost:${PORT}`));
