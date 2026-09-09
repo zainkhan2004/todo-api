@@ -26,4 +26,24 @@ function create(title) {
   return task;
 }
 
-module.exports = { getAll, getById, create, seed };
+function update(id, changes) {
+  const task = getById(id);
+  if (!task) return null;
+  if (changes.title !== undefined) task.title = changes.title;
+  if (changes.done !== undefined) task.done = changes.done;
+  return task;
+}
+
+function remove(id) {
+  const idx = tasks.findIndex((t) => t.id === id);
+  if (idx === -1) return false;
+  tasks.splice(idx, 1);
+  return true;
+}
+
+function reset() {
+  seed();
+  return tasks;
+}
+
+module.exports = { getAll, getById, create, update, remove, reset };

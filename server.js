@@ -31,4 +31,31 @@ app.post('/tasks', (req, res) => {
   res.status(201).json(created);
 });
 
+app.put('/tasks/:id', (req, res) => {
+  const id = Number(req.params.id);
+  const existing = tasks.getById(id);
+  if (!existing) return res.status(404).json({ error: `Task ${id} not found` });
+
+  const { title, done } = req.body;
+  if (title === undefined && done === undefined) {
+    return res.status(400).json({ error: 'provide title and/or done to update' });
+  }
+  if (title !== undefined && (typeof title !== 'string' || title.trim() === '')) {
+    return res.status(400).json({ error: 'title must be a non-empty string' });
+  }
+  if (done !== undefined && typeof done !== 'boolean') {
+    return res.status(400).json({ error: 'done must be true or false' });
+  }
+
+  const updated = tasks.update(id, { title, done });
+  res.json(updated);
+});
+
+app.delete('/tasks/:id', (req, res) => {
+  const id = Number(req.params.id);
+  const ok = tasks.remove(id);
+  if (!ok) return res.status(404).json({ error: `Task ${id} not found` });
+  res.status(204).end();
+});
+
 app.listen(3000, () => console.log('Task API listening on http://localhost:3000'));
