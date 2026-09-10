@@ -34,7 +34,7 @@ The server starts on **http://localhost:3000**.
 
 Visit **http://localhost:3000/docs** — every endpoint is listed with a "Try it out" button.
 
-*(Add your own screenshot here after you run it — that's part of the Stage 5 checkpoint.)*
+![Swagger UI](SwaggerUI-screenshot.png)
 
 ## Sample curl output (full CRUD cycle)
 
