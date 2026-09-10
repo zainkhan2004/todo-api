@@ -64,5 +64,4 @@ Content-Type: application/json
 ## The mortality experiment
 
 Restart the server and `GET /tasks` — you're back to the 3 seed tasks. Everything you created is gone,
-because it only ever lived in a plain JavaScript array in RAM, not on disk. Fixing that is what Week 3
-(a real database) is for.
+because it only ever lived in a plain JavaScript array in RAM, not on disk.
