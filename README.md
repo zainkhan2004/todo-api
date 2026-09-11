@@ -34,7 +34,7 @@ The server starts on **http://localhost:3000**.
 
 Visit **http://localhost:3000/docs** — every endpoint is listed with a "Try it out" button.
 
-*(Add your own screenshot here after you run it — that's part of the Stage 5 checkpoint.)*
+![Swagger UI](SwaggerUI-screenshot.png)
 
 ## Sample curl output (full CRUD cycle)
 
@@ -64,6 +64,7 @@ Content-Type: application/json
 ## The mortality experiment
 
 Restart the server and `GET /tasks` — you're back to the 3 seed tasks. Everything you created is gone,
+<<<<<<< HEAD
 because it only ever lived in a plain JavaScript array in RAM, not on disk. Fixing that is what Week 3
 (a real database) is for.
 
@@ -86,3 +87,4 @@ Ran this directly against `tasks.db` (bypassing the API entirely) and it
 returned the one seeded task already marked done:
 `{"id":3,"title":"Write README","done":1}` — same file the API reads
 from, no syncing required.
+
