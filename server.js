@@ -50,8 +50,9 @@ app.post('/tasks', (req, res) => {
   if (typeof title !== 'string' || title.trim() === '') {
     return res.status(400).json({ error: 'title is required and must be a non-empty string' });
   }
-  const created = tasks.create(title);
-  res.status(201).json(created);
+  const result = db.prepare('INSERT INTO tasks (title, done) VALUES (?, ?)').run(title, 0);
+  const row = db.prepare('SELECT * FROM tasks WHERE id = ?').get(Number(result.lastInsertRowid));
+  res.status(201).json(toClient(row));
 });
 
 app.put('/tasks/:id', (req, res) => {
