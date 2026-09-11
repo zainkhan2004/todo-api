@@ -57,8 +57,8 @@ app.post('/tasks', (req, res) => {
 
 app.put('/tasks/:id', (req, res) => {
   const id = Number(req.params.id);
-  const existing = tasks.getById(id);
-  if (!existing) return res.status(404).json({ error: `Task ${id} not found` });
+  const existing = db.prepare('SELECT * FROM tasks WHERE id = ?').get(id);
+  if (!existing) return res.status(404).json({ error: 'Task not found' });
 
   const { title, done } = req.body;
   if (title === undefined && done === undefined) {
@@ -70,26 +70,25 @@ app.put('/tasks/:id', (req, res) => {
   if (done !== undefined && typeof done !== 'boolean') {
     return res.status(400).json({ error: 'done must be true or false' });
   }
-
-  const updated = tasks.update(id, { title, done });
-  res.json(updated);
+  const newTitle = title !== undefined ? title : existing.title;
+  const newDone = done !== undefined ? (done ? 1 : 0) : existing.done;
+  db.prepare('UPDATE tasks SET title = ?, done = ? WHERE id = ?').run(newTitle, newDone, id);
+  const row = db.prepare('SELECT * FROM tasks WHERE id = ?').get(id);
+  res.json(toClient(row));
 });
 
 app.delete('/tasks/:id', (req, res) => {
   const id = Number(req.params.id);
-  const ok = tasks.remove(id);
-  if (!ok) return res.status(404).json({ error: `Task ${id} not found` });
+  const existing = db.prepare('SELECT * FROM tasks WHERE id = ?').get(id);
+  if (!existing) return res.status(404).json({ error: 'Task not found' });
+  db.prepare('DELETE FROM tasks WHERE id = ?').run(id);
   res.status(204).end();
 });
 
-app.post('/reset', (req, res) => {
-  res.json(tasks.reset());
-});
-
 app.get('/stats', (req, res) => {
-  const all = tasks.getAll();
-  const done = all.filter((t) => t.done).length;
-  res.json({ total: all.length, done, open: all.length - done });
+  const { total } = db.prepare('SELECT COUNT(*) AS total FROM tasks').get();
+  const { done } = db.prepare('SELECT COUNT(*) AS done FROM tasks WHERE done = 1').get();
+  res.json({ total, done, open: total - done });
 });
 
 const PORT = 3000;
