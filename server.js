@@ -1,7 +1,11 @@
 const express = require('express');
 const swaggerUi = require('swagger-ui-express');
 const openapiSpec = require('./openapi.json');
-const tasks = require('./tasks');
+const db = require('./db');
+
+function toClient(row) {
+  return { id: row.id, title: row.title, done: !!row.done };
+}
 
 const app = express();
 app.use(express.json());
@@ -17,22 +21,28 @@ app.get('/health', (req, res) => {
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(openapiSpec));
 
 app.get('/tasks', (req, res) => {
-  let result = tasks.getAll();
+  let sql = 'SELECT * FROM tasks';
+  const clauses = [];
+  const params = [];
   if (req.query.done !== undefined) {
-    result = result.filter((t) => String(t.done) === req.query.done);
+    clauses.push('done = ?');
+    params.push(req.query.done === 'true' ? 1 : 0);
   }
   if (req.query.search) {
-    const term = req.query.search.toLowerCase();
-    result = result.filter((t) => t.title.toLowerCase().includes(term));
+    clauses.push('title LIKE ?');
+    params.push(`%${req.query.search}%`);
   }
-  res.json(result);
+  if (clauses.length) sql += ' WHERE ' + clauses.join(' AND ');
+  sql += ' ORDER BY id';
+  const rows = db.prepare(sql).all(...params);
+  res.json(rows.map(toClient));
 });
 
 app.get('/tasks/:id', (req, res) => {
   const id = Number(req.params.id);
-  const task = tasks.getById(id);
-  if (!task) return res.status(404).json({ error: `Task ${id} not found` });
-  res.json(task);
+  const row = db.prepare('SELECT * FROM tasks WHERE id = ?').get(id);
+  if (!row) return res.status(404).json({ error: 'Task not found' });
+  res.json(toClient(row));
 });
 
 app.post('/tasks', (req, res) => {
