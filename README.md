@@ -66,3 +66,23 @@ Content-Type: application/json
 Restart the server and `GET /tasks` — you're back to the 3 seed tasks. Everything you created is gone,
 because it only ever lived in a plain JavaScript array in RAM, not on disk. Fixing that is what Week 3
 (a real database) is for.
+
+## Why SQLite?
+
+Tasks now live in `tasks.db` instead of in memory. SQLite is a single file
+with no separate server to install or run — perfect for a small project
+like this one. Data now survives a server restart, which it never did in
+the in-memory version.
+
+`tasks.db` is created automatically the first time the server runs, and
+it's git-ignored, so a fresh clone always starts with a clean 3-task
+database.
+
+## Example manual query (Stage 4)
+
+    SELECT * FROM tasks WHERE done = 1;
+
+Ran this directly against `tasks.db` (bypassing the API entirely) and it
+returned the one seeded task already marked done:
+`{"id":3,"title":"Write README","done":1}` — same file the API reads
+from, no syncing required.
