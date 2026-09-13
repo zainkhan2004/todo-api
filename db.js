@@ -1,28 +1,28 @@
-const { DatabaseSync } = require('node:sqlite');
+const { Pool } = require('pg');
 
-const db = new DatabaseSync('tasks.db');
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
-db.exec(`
-  CREATE TABLE IF NOT EXISTS tasks (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    title TEXT NOT NULL,
-    done INTEGER NOT NULL DEFAULT 0
-  )
-`);
-
-const { n } = db.prepare('SELECT COUNT(*) AS n FROM tasks').get();
-if (n === 0) {
-  db.exec('BEGIN');
-  try {
-    const insert = db.prepare('INSERT INTO tasks (title, done) VALUES (?, ?)');
-    insert.run('Buy milk', 0);
-    insert.run('Walk the dog', 0);
-    insert.run('Write README', 1);
-    db.exec('COMMIT');
-  } catch (err) {
-    db.exec('ROLLBACK');
-    throw err;
+async function init() {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS tasks (
+      id SERIAL PRIMARY KEY,
+      title TEXT NOT NULL,
+      done BOOLEAN NOT NULL DEFAULT false
+    )
+  `);
+  const { rows } = await pool.query('SELECT COUNT(*) FROM tasks');
+  if (Number(rows[0].count) === 0) {
+    try {
+      await pool.query('BEGIN');
+      await pool.query('INSERT INTO tasks (title, done) VALUES ($1,$2)', ['Buy milk', false]);
+      await pool.query('INSERT INTO tasks (title, done) VALUES ($1,$2)', ['Walk the dog', false]);
+      await pool.query('INSERT INTO tasks (title, done) VALUES ($1,$2)', ['Write README', true]);
+      await pool.query('COMMIT');
+    } catch (err) {
+      await pool.query('ROLLBACK');
+      throw err;
+    }
   }
 }
 
-module.exports = db;
+module.exports = { pool, init };
