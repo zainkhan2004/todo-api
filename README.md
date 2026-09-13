@@ -88,3 +88,18 @@ returned the one seeded task already marked done:
 `{"id":3,"title":"Write README","done":1}` — same file the API reads
 from, no syncing required.
 
+
+## Running with Docker (Week 1 A3)
+
+    cp .env.example .env
+    docker compose up
+
+Starts the API and a Postgres 16 database together with one command.
+The database's data lives in a named volume (`taskdata`), so it survives
+`docker compose down` and `up` again — proven by creating a task, tearing
+the whole stack down, bringing it back up, and confirming the task was
+still there with no manual database setup.
+
+Postgres replaces SQLite from A2 — same API, same endpoints, same status
+codes, now backed by a real database server instead of a single file,
+running the same way on any machine with Docker installed.
