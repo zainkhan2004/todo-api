@@ -1,105 +1,107 @@
-# Task API
+  # Task API with Supabase Auth
 
-A small in-memory CRUD API for a to-do list, built for FlyRank Internship — Backend Track, Week 2, Assignment A1.
+  A Node.js + Express REST API with PostgreSQL and Supabase Authentication.
 
-## What this is
+  ## Setup
 
-An Express server with 5 CRUD endpoints over an in-memory task list (`{ id, title, done }`), interactive
-docs via Swagger UI, plus a couple of optional extras (filtering, `/stats`, `/reset`).
+  1. Clone the repo:
 
-## How to install & run
 
-```
+git clone https://github.com/zainkhan2004/todo-api.git cd todo-api
+
+
+  2. Install dependencies:
+
+
 npm install
-npm start
-```
-
-The server starts on **http://localhost:3000**.
-
-## Endpoints
-
-| Method | Path         | Meaning                              | Success | Errors        |
-|--------|--------------|---------------------------------------|---------|---------------|
-| GET    | /            | API description                       | 200     | –             |
-| GET    | /health      | Liveness check                        | 200     | –             |
-| GET    | /tasks       | List all tasks (`?done=`, `?search=`) | 200     | –             |
-| GET    | /tasks/:id   | Get one task                          | 200     | 404           |
-| POST   | /tasks       | Create a task (`{ "title": "..." }`)  | 201     | 400           |
-| PUT    | /tasks/:id   | Update title and/or done              | 200     | 400, 404      |
-| DELETE | /tasks/:id   | Delete a task                         | 204     | 404           |
-| POST   | /reset       | Restore the 3 seed tasks (extra)      | 200     | –             |
-| GET    | /stats       | `{ total, done, open }` (extra)       | 200     | –             |
-
-## Swagger UI
-
-Visit **http://localhost:3000/docs** — every endpoint is listed with a "Try it out" button.
-
-![Swagger UI](SwaggerUI-screenshot.png)
-
-## Sample curl output (full CRUD cycle)
-
-```
-$ curl -i -X POST http://localhost:3000/tasks -H "Content-Type: application/json" -d '{"title":"Buy milk"}'
-HTTP/1.1 201 Created
-Content-Type: application/json
-
-{"id":4,"title":"Buy milk","done":false}
-
-$ curl -i -X PUT http://localhost:3000/tasks/4 -H "Content-Type: application/json" -d '{"done":true}'
-HTTP/1.1 200 OK
-Content-Type: application/json
-
-{"id":4,"title":"Buy milk","done":true}
-
-$ curl -i -X DELETE http://localhost:3000/tasks/4
-HTTP/1.1 204 No Content
-
-$ curl -i http://localhost:3000/tasks/4
-HTTP/1.1 404 Not Found
-Content-Type: application/json
-
-{"error":"Task 4 not found"}
-```
-
-## The mortality experiment
-
-Restart the server and `GET /tasks` — you're back to the 3 seed tasks. Everything you created is gone,
-<<<<<<< HEAD
-because it only ever lived in a plain JavaScript array in RAM, not on disk. Fixing that is what Week 3
-(a real database) is for.
-
-## Why SQLite?
-
-Tasks now live in `tasks.db` instead of in memory. SQLite is a single file
-with no separate server to install or run — perfect for a small project
-like this one. Data now survives a server restart, which it never did in
-the in-memory version.
-
-`tasks.db` is created automatically the first time the server runs, and
-it's git-ignored, so a fresh clone always starts with a clean 3-task
-database.
-
-## Example manual query (Stage 4)
-
-    SELECT * FROM tasks WHERE done = 1;
-
-Ran this directly against `tasks.db` (bypassing the API entirely) and it
-returned the one seeded task already marked done:
-`{"id":3,"title":"Write README","done":1}` — same file the API reads
-from, no syncing required.
 
 
-## Running with Docker (Week 1 A3)
+  3. Set up environment variables:
 
-    cp .env.example .env
-    docker compose up
 
-Starts the API and a Postgres 16 database together with one command.
-The database's data lives in a named volume (`taskdata`), so it survives
-`docker compose down` and `up` again — proven by creating a task, tearing
-the whole stack down, bringing it back up, and confirming the task was
-still there with no manual database setup.
+cp .env.example .env
 
-Postgres replaces SQLite from A2 — same API, same endpoints, same status
-codes, now backed by a real database server instead of a single file,
-running the same way on any machine with Docker installed.
+  Edit `.env` with your Supabase credentials and database URL.
+
+  4. Start PostgreSQL in Docker:
+
+
+docker compose up db -d
+
+
+  5. Run the server:
+
+
+node --env-file=.env server.js
+
+
+  Server runs on `http://localhost:3000`
+
+  ## API Reference
+
+  ### Public Routes
+  - `GET /public/info` — Public information
+  - `GET /health` — Health check (database status)
+  - `GET /docs` — Swagger UI documentation
+
+  ### Auth Routes
+  - `POST /auth/signup` — Create account (email, password)
+  - `POST /auth/login` — Login, returns access_token and refresh_token
+  - `POST /auth/logout` — Logout (requires Bearer token)
+
+  ### Protected Routes (require `Authorization: Bearer <token>`)
+  - `GET /protected/profile` — Get authenticated user profile
+  - `GET /protected/dashboard` — User dashboard
+
+  ### Task Routes
+  - `GET /tasks` — List all tasks (optional: ?done=true, ?search=text)
+  - `POST /tasks` — Create task
+  - `GET /tasks/:id` — Get task by ID
+  - `PUT /tasks/:id` — Update task
+  - `DELETE /tasks/:id` — Delete task
+  - `GET /stats` — Task statistics
+
+  ## Authentication
+
+  1. Sign up:
+
+
+curl -X POST http://localhost:3000/auth/signup    -H "Content-Type: application/json"    -d '{"email":"user@example.com","password":"password123"}'
+
+
+  2. Login:
+
+
+curl -X POST http://localhost:3000/auth/login    -H "Content-Type: application/json"    -d '{"email":"user@example.com","password":"password123"}'
+
+
+  3. Use token on protected routes:
+
+
+curl -H "Authorization: Bearer YOUR_ACCESS_TOKEN"    http://localhost:3000/protected/profile
+
+
+  ## Swagger Documentation
+
+  Open `http://localhost:3000/docs` in your browser.
+
+  - Click the **Authorize** button (top-right)
+  - Paste your Bearer token from login
+  - All protected routes show lock icons and work with authorized token
+
+  ## Tech Stack
+
+  - Node.js + Express
+  - PostgreSQL (Docker)
+  - Supabase Authentication
+  - Swagger UI (OpenAPI 3.0)
+
+  ## Stages Implemented
+
+  - ✓ Stage 0: Environment setup
+  - ✓ Stage 1: Signup/Login auth routes
+  - ✓ Stage 2: Public and protected endpoints with Bearer check
+  - ✓ Stage 3: Token verification with Supabase
+  - ✓ Stage 4: Auth middleware and protected routes
+  - ✓ Stage 5: Swagger with bearer authentication
+  - ✓ Stage 6: GitHub, documentation, .env.example
